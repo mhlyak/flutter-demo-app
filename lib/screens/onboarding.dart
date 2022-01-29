@@ -10,11 +10,11 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
 
-  int _currentPage = 0;
+  int _index = 0;
 
   final PageController _pageController = PageController(initialPage: 0);
 
-  final List<Widget> _introWidgetsList = <Widget>[
+  final List<Widget> _slidesList = <Widget>[
     const OnboardingSlide(
       title: 'Odbieraj przseylki zdalnie!',
       description: 'Juz nie musisz wpisywac koduani skanowac go w Paczkomacie.',
@@ -31,78 +31,74 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagename: 'images/onboarding_c.png',
     )
   ];
-
+  
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      color: Color(0xff262627)
-    ),
-    child: Stack(      
-      alignment: AlignmentDirectional.bottomCenter,
-      children: [
-        // Slide screens
-        PageView.builder(
-          physics: const ClampingScrollPhysics(),
-          itemCount: _introWidgetsList.length,
-          controller: _pageController,
-          onPageChanged: (int page) {
-            getChangedPageAndMoveBar(page);
-          },
-          //controller: controller,
-          itemBuilder: (context, index) {
-            return _introWidgetsList[index];
-          },
-        ),
+  Widget build(BuildContext context) {   
 
-        // Number of slides and active slide indicator
-        Stack(
-          alignment: AlignmentDirectional.topStart,
-          children: <Widget>[
-            Container(
-              margin: const EdgeInsets.only(bottom: 320),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  for(int i = 0; i < _introWidgetsList.length; i++)
-                    if(i == _currentPage) ...[circleBar(true)]
-                    else ...[circleBar(false)]
-                ],
-              ),
-            )
-          ],
-        ),
-
-        // Slides button
-        Container(
-          margin: const EdgeInsets.all(25.0),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(              
-              minimumSize: const Size.fromHeight(50.0),
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-              primary: const Color(0xfff7cf46),
-              onPrimary: const Color(0xff404041),
-              textStyle: const TextStyle(
-                fontWeight: FontWeight.bold
-              )
-            ),
-            onPressed: () {
-              if(!isFinalPage()) {
-                _pageController.nextPage(
-                  duration: const Duration(microseconds: 1000), 
-                  curve: Curves.bounceInOut
-                );
-              }
-              else {
-                Navigator.pushReplacementNamed(context, '/home');
-              }
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xff262627)
+      ),
+      child: Stack(      
+        alignment: AlignmentDirectional.bottomCenter,
+        children: [
+          // Slide screens
+          PageView.builder(
+            physics: const ClampingScrollPhysics(),
+            itemCount: _slidesList.length,
+            controller: _pageController,
+            onPageChanged: (int index) {
+              setState(() {
+                _index = index;
+              });
             },
-            child: Text(!isFinalPage() ? 'Dalej' : 'Gotowe')
+            //controller: controller,
+            itemBuilder: (context, index) {
+              return _slidesList[index];
+            },
+          ),
+
+          // Number of slides and active slide indicator
+          Stack(
+            alignment: AlignmentDirectional.topStart,
+            children: <Widget>[
+              Container(
+                margin: const EdgeInsets.only(bottom: 320),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    for(int i = 0; i < _slidesList.length; i++)
+                      if(i == _index) ...[circleBar(true)]
+                      else ...[circleBar(false)]
+                  ],
+                ),
+              )
+            ],
+          ),
+
+          // Slides button
+          Container(
+            margin: const EdgeInsets.all(25.0),
+            child: ElevatedButton(
+              onPressed: () {
+                if(!isFinalPage()) {
+                  _pageController.nextPage(
+                    duration: const Duration(microseconds: 1000), 
+                    curve: Curves.bounceInOut
+                  );
+                }
+                else {
+                  Navigator.pushReplacementNamed(context, '/home');
+                }
+              },
+              child: Text(!isFinalPage() ? 'Dalej' : 'Gotowe')
+            )
           )
-        )
-      ]
-    )
-  );
+        ]
+      )
+    );
+  }
 
   Widget circleBar(bool isActive) => AnimatedContainer(
     duration: const Duration(microseconds: 150),
@@ -114,12 +110,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   );
 
-  void getChangedPageAndMoveBar(int page) {
-    _currentPage = page;
-    setState(() {});
+  bool isFinalPage() {
+    return _index == (_slidesList.length - 1);
   }
 
-  bool isFinalPage() {
-    return _currentPage == (_introWidgetsList.length - 1);
+  void nextPage() {
+    _pageController.nextPage(
+      duration: const Duration(microseconds: 1000), 
+      curve: Curves.bounceInOut
+    );
+  }
+
+  void navigateTo({String route = '/home'}) {
+    Navigator.pushReplacementNamed(context, route);
   }
 }
